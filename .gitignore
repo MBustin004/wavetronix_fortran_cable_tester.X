@@ -1,0 +1,7 @@
+# This is the ignore file, hope I don't screw it up!
+*.o
+Makefile
+build/
+debug/
+dist/
+nbproject/
