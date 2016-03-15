@@ -119,7 +119,7 @@ void delay(void)
 
 void pause_flash (void)
 {
-    test_stop = 1;
+    //test_stop = 1;
     while(test_stop == 1)
                     {
                         LATA ^=0x1F;
@@ -131,7 +131,7 @@ void pause_flash (void)
 
 void test_signal (void)
 {
-    test_stop = 1;
+    //test_stop = 1;
     while (test_stop == 1) //Blinks light if input is correct
         {
             if (PORTBbits.RB5 == 0) //Pin 14
@@ -143,9 +143,9 @@ void test_signal (void)
 
 int analyze_test (int test_1,int test_2,int test_3,int test_4)
 {
-        test_stop =1;
-        while (test_stop == 1)
-        {
+        //test_stop =1;
+        //while (test_stop == 1)
+        //{
             LATBbits.LATB15 ^= 1;
             delay();
             
@@ -160,6 +160,6 @@ int analyze_test (int test_1,int test_2,int test_3,int test_4)
                 LATBbits.LATB13 ^= 1;
                 delay();
             }
-        }
+        //}
         return 0;
 }

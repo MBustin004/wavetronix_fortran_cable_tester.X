@@ -56,25 +56,29 @@ int16_t main(void)
         {
             case 0:
                 testAB(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
+                delay();
+                //pause_flash(); // flashes LEDS to show non-testing phase
                 AB = PORTBbits.RB5;
                 stage ++;
                 break;
             case 1:
                 testBA(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
+                delay();
+                //pause_flash(); // flashes LEDS to show non-testing phase
                 BA = PORTBbits.RB5;
                 stage ++;
                 break;
             case 2:
                 testCD(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
+                delay();
+                //pause_flash(); // flashes LEDS to show non-testing phase
                 CD = PORTBbits.RB5;
                 stage ++;
                 break;
             case 3:
                 testDC(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
+                delay();
+                //pause_flash(); // flashes LEDS to show non-testing phase
                 DC = PORTBbits.RB5;
                 stage ++;
                 break;
