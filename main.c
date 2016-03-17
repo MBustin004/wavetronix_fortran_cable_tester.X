@@ -47,9 +47,6 @@ int16_t main(void)
     LATA = 0x1F;  //Port A high for LED output Pins 1-5
     LATBbits.LATB15 = 1; // RB15 LED output, pin 26
     
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    
     while(1)
     {
         switch (stage) //Selects what test to perform

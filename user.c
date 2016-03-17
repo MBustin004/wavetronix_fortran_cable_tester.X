@@ -50,7 +50,11 @@ void InitApp(void)
 
 void testAB (void) // setup switches for AB test
 {
-    //Switch Setup - Diode 1
+    //Switch Setup
+    LATB = 0x0009;
+    //Signal Setup
+    LATBbits.LATB4 = 1; //signal on pin 11
+    /*//Switch Setup - Diode 1
     LATBbits.LATB0 = 1;
     LATBbits.LATB1 = 0;
     LATBbits.LATB2 = 0;
@@ -60,12 +64,16 @@ void testAB (void) // setup switches for AB test
     LATBbits.LATB6 = 0;
     LATBbits.LATB8 = 0;
     LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 0;
+    LATBbits.LATB10 = 0;*/
 }
 
 void testBA (void) // setup switches for BA test
 {
-    //Switch Setup - Diode 1
+    //Switch Setup
+    LATB = 0x0006;
+    //Signal Setup
+    LATBbits.LATB4 = 1; //signal on pin 11
+    /*//Switch Setup - Diode 1
     LATBbits.LATB0 = 0;
     LATBbits.LATB1 = 1;
     LATBbits.LATB2 = 1;
@@ -75,12 +83,16 @@ void testBA (void) // setup switches for BA test
     LATBbits.LATB6 = 0;
     LATBbits.LATB8 = 0;
     LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 0;
+    LATBbits.LATB10 = 0;*/
 }
 
 void testCD (void) // setup switches for CD test
 {
-    //Switch Setup - Diode 1
+    //Switch Setup
+    LATB = 0x0440;
+    //Signal Setup
+    LATBbits.LATB4 = 1; //signal on pin 11
+    /*//Switch Setup - Diode 1
     LATBbits.LATB0 = 0;
     LATBbits.LATB1 = 0;
     LATBbits.LATB2 = 0;
@@ -90,12 +102,16 @@ void testCD (void) // setup switches for CD test
     LATBbits.LATB6 = 1;
     LATBbits.LATB8 = 0;
     LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 1;
+    LATBbits.LATB10 = 1;*/
 }
 
 void testDC (void) // setup switches for DC test
 {
-    //Switch Setup - Diode 1
+    //Switch Setup
+    LATB = 0x0300;
+    //Signal Setup
+    LATBbits.LATB4 = 1; //signal on pin 11
+    /*//Switch Setup - Diode 1
     LATBbits.LATB0 = 0;
     LATBbits.LATB1 = 0;
     LATBbits.LATB2 = 0;
@@ -105,7 +121,7 @@ void testDC (void) // setup switches for DC test
     LATBbits.LATB6 = 0;
     LATBbits.LATB8 = 1;
     LATBbits.LATB9 = 1;
-    LATBbits.LATB10 = 0;
+    LATBbits.LATB10 = 0;*/
 }
 
 void delay(void)
