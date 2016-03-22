@@ -48,80 +48,48 @@ void InitApp(void)
     
 }
 
-void testAB (void) // setup switches for AB test
+void testA (int results[5]) // setup switches for AB test
 {
-    //Switch Setup
+    //Switch Setup - AB
     LATB = 0x0009;
     //Signal Setup
     LATBbits.LATB4 = 1; //signal on pin 11
-    /*//Switch Setup - Diode 1
-    LATBbits.LATB0 = 1;
-    LATBbits.LATB1 = 0;
-    LATBbits.LATB2 = 0;
-    LATBbits.LATB3 = 1;
-    
-    //Switch Setup - Diode 2
-    LATBbits.LATB6 = 0;
-    LATBbits.LATB8 = 0;
-    LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 0;*/
+    delay();
+    //pause_flash(); // flashes LEDS to show non-testing phase
+    results[0] = PORTBbits.RB5;
 }
 
-void testBA (void) // setup switches for BA test
+void testB (int results[5]) // setup switches for BA test
 {
-    //Switch Setup
+    //Switch Setup - BA
     LATB = 0x0006;
     //Signal Setup
     LATBbits.LATB4 = 1; //signal on pin 11
-    /*//Switch Setup - Diode 1
-    LATBbits.LATB0 = 0;
-    LATBbits.LATB1 = 1;
-    LATBbits.LATB2 = 1;
-    LATBbits.LATB3 = 0;
-    
-    //Switch Setup - Diode 2
-    LATBbits.LATB6 = 0;
-    LATBbits.LATB8 = 0;
-    LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 0;*/
+    delay();
+    //pause_flash(); // flashes LEDS to show non-testing phase
+    results[0] = PORTBbits.RB5;
 }
 
-void testCD (void) // setup switches for CD test
+void testC (int results[5]) // setup switches for CD test
 {
-    //Switch Setup
+    //Switch Setup - CD
     LATB = 0x0440;
     //Signal Setup
     LATBbits.LATB4 = 1; //signal on pin 11
-    /*//Switch Setup - Diode 1
-    LATBbits.LATB0 = 0;
-    LATBbits.LATB1 = 0;
-    LATBbits.LATB2 = 0;
-    LATBbits.LATB3 = 0;
-    
-    //Switch Setup - Diode 2
-    LATBbits.LATB6 = 1;
-    LATBbits.LATB8 = 0;
-    LATBbits.LATB9 = 0;
-    LATBbits.LATB10 = 1;*/
+    delay();
+    //pause_flash(); // flashes LEDS to show non-testing phase
+    results[0] = PORTBbits.RB5;
 }
 
-void testDC (void) // setup switches for DC test
+void testD (int results[5]) // setup switches for DC test
 {
-    //Switch Setup
+    //Switch Setup - DC
     LATB = 0x0300;
     //Signal Setup
     LATBbits.LATB4 = 1; //signal on pin 11
-    /*//Switch Setup - Diode 1
-    LATBbits.LATB0 = 0;
-    LATBbits.LATB1 = 0;
-    LATBbits.LATB2 = 0;
-    LATBbits.LATB3 = 0;
-    
-    //Switch Setup - Diode 2
-    LATBbits.LATB6 = 0;
-    LATBbits.LATB8 = 1;
-    LATBbits.LATB9 = 1;
-    LATBbits.LATB10 = 0;*/
+    delay();
+    //pause_flash(); // flashes LEDS to show non-testing phase
+    results[0] = PORTBbits.RB5;
 }
 
 void delay(void)
@@ -157,7 +125,7 @@ void test_signal (void)
         }
 }
 
-int analyze_test (int test_1,int test_2,int test_3,int test_4)
+void analyze_test (int test_1[5],int test_2[5],int test_3[5],int test_4[5])
 {
         //test_stop =1;
         //while (test_stop == 1)
@@ -165,17 +133,16 @@ int analyze_test (int test_1,int test_2,int test_3,int test_4)
             LATBbits.LATB15 ^= 1;
             delay();
             
-            if (test_1 == 1 && test_2 == 0)
+            if (test_1[0] == 1 && test_2[0] == 0)
             {
                 LATBbits.LATB14 ^= 1;
                 delay();
             }
             
-            if (test_3 == 0 && test_4 == 1)
+            if (test_3[0] == 0 && test_4[0] == 1)
             {
                 LATBbits.LATB13 ^= 1;
                 delay();
             }
         //}
-        return 0;
 }

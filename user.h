@@ -11,14 +11,14 @@
 /* TODO User level functions prototypes (i.e. InitApp) go here */
 
 void InitApp(void);         /* I/O and Peripheral Initialization */
-void testAB (void);
-void testBA (void);
-void testCD (void);
-void testDC (void);
+void testA (int results[5]);
+void testB (int results[5]);
+void testC (int results[5]);
+void testD (int results[5]);
 void delay (void);
 void pause_flash (void);
 void test_signal (void);
-int analyze_test (int test_1,int test_2,int test_3,int test_4);
+void analyze_test (int test_1[5],int test_2[5],int test_3[5],int test_4[5]);
 
 
 extern int test_stop;

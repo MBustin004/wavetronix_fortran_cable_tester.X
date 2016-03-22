@@ -32,11 +32,10 @@ int test_stop = 0; //Global for manual advancement through program
 int16_t main(void)
 {
     //Variable Setup
-    int AB = 0; //Results of test AB
-    int BA = 1; //Results of test BA
-    int CD = 1;
-    int DC = 0;
-    int result = 0;
+    int results_A[5]; //Results of test AB
+    int results_B[5]; //Results of test BA
+    int results_C[5];
+    int results_D[5];
     stage = 0;  //Selects which wire pair to test
     
     //INIT
@@ -52,31 +51,18 @@ int16_t main(void)
         switch (stage) //Selects what test to perform
         {
             case 0:
-                testAB(); // Configures switches for test
-                delay();
-                //pause_flash(); // flashes LEDS to show non-testing phase
-                AB = PORTBbits.RB5;
+                testA(results_A); // Configures switches for test
                 stage ++;
                 break;
             case 1:
-                testBA(); // Configures switches for test
-                delay();
-                //pause_flash(); // flashes LEDS to show non-testing phase
-                BA = PORTBbits.RB5;
+                testB(results_B); // Configures switches for test
                 stage ++;
                 break;
             case 2:
-                testCD(); // Configures switches for test
-                delay();
-                //pause_flash(); // flashes LEDS to show non-testing phase
-                CD = PORTBbits.RB5;
+                testC(results_C); // Configures switches for test
                 stage ++;
-                break;
             case 3:
-                testDC(); // Configures switches for test
-                delay();
-                //pause_flash(); // flashes LEDS to show non-testing phase
-                DC = PORTBbits.RB5;
+                testD(results_D); // Configures switches for test
                 stage ++;
                 break;
             default:
@@ -84,8 +70,8 @@ int16_t main(void)
                 break;
         }
         
-        test_signal(); //Holds test procedure to visually confirm functioning switches
+        //test_signal(); //Holds test procedure to visually confirm functioning switches
         
-        result = analyze_test(AB, BA, CD, DC); //Analyze results, RED LED blink if good
+        analyze_test(results_A, results_B, results_C, results_D); //Analyze results, RED LED blink if good
     }
 }
