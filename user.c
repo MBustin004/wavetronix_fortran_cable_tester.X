@@ -1,7 +1,3 @@
-/******************************************************************************/
-/* Files to Include                                                           */
-/******************************************************************************/
-
 /* Device header file */
 #if defined(__XC16__)
     #include <xc.h>
@@ -16,12 +12,6 @@
 #include <stdint.h>          /* For uint16_t definition                       */
 #include <stdbool.h>         /* For true/false definition                     */
 #include "user.h"            /* variables/params used by user.c               */
-
-/******************************************************************************/
-/* User Functions                                                             */
-/******************************************************************************/
-
-/* <Initialize variables in user.h and insert code for user algorithms.> */
 
 void InitApp(void)
 {
@@ -48,48 +38,25 @@ void InitApp(void)
     
 }
 
-void testA (int results[5]) // setup switches for AB test
+int test (int procedure[5]) // setup switches for AB test
 {
-    //Switch Setup - AB
-    LATB = 0x0009;
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    delay();
-    //pause_flash(); // flashes LEDS to show non-testing phase
-    results[0] = PORTBbits.RB5;
-}
-
-void testB (int results[5]) // setup switches for BA test
-{
-    //Switch Setup - BA
-    LATB = 0x0006;
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    delay();
-    //pause_flash(); // flashes LEDS to show non-testing phase
-    results[0] = PORTBbits.RB5;
-}
-
-void testC (int results[5]) // setup switches for CD test
-{
-    //Switch Setup - CD
-    LATB = 0x0440;
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    delay();
-    //pause_flash(); // flashes LEDS to show non-testing phase
-    results[0] = PORTBbits.RB5;
-}
-
-void testD (int results[5]) // setup switches for DC test
-{
-    //Switch Setup - DC
-    LATB = 0x0300;
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    delay();
-    //pause_flash(); // flashes LEDS to show non-testing phase
-    results[0] = PORTBbits.RB5;
+    int i = 0;
+    int results = 0;
+    for (i = 0; i < 5; i++)
+        {
+            //Switch Setups
+            LATB = procedure[i]; // TEST AB, turns off pin 11 signal
+            //Signal Setup
+            LATBbits.LATB4 = 1; //signal on pin 11
+            delay();
+            //pause_flash(); // flashes LEDS to show non-testing phase
+            if (i>0)
+            {
+                results <<= 1;
+            }
+            results |= PORTBbits.RB5;
+        }
+    return results;
 }
 
 void delay(void)
@@ -105,11 +72,11 @@ void pause_flash (void)
 {
     //test_stop = 1;
     while(test_stop == 1)
-                    {
-                        LATA ^=0x1F;
-                        LATBbits.LATB15 ^= 1;
-                        delay();
-                    }
+    {
+        LATA ^=0x1F;
+        LATBbits.LATB15 ^= 1;
+        delay();
+    }
     delay();
 }
 
@@ -125,21 +92,18 @@ void test_signal (void)
         }
 }
 
-void analyze_test (int test_1[5],int test_2[5],int test_3[5],int test_4[5])
+void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int test_6)
 {
         //test_stop =1;
         //while (test_stop == 1)
         //{
-            LATBbits.LATB15 ^= 1;
-            delay();
-            
-            if (test_1[0] == 1 && test_2[0] == 0)
+            if (test_1 == 0x0010 && test_2 == 0x0000)
             {
                 LATBbits.LATB14 ^= 1;
                 delay();
             }
             
-            if (test_3[0] == 0 && test_4[0] == 1)
+            if (test_3 == 0x0000 && test_4 == 0x0004)
             {
                 LATBbits.LATB13 ^= 1;
                 delay();

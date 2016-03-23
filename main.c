@@ -1,7 +1,3 @@
-/******************************************************************************/
-/* Files to Include                                                           */
-/******************************************************************************/
-
 /* Device header file */
 #if defined(__XC16__)
     #include <xc.h>
@@ -12,7 +8,6 @@
     	#include <p33Fxxxx.h>
     #endif
 #endif
-
 
 #include <stdint.h>        /* Includes uint16_t definition                    */
 #include <stdbool.h>       /* Includes true/false definition                  */
@@ -32,10 +27,18 @@ int test_stop = 0; //Global for manual advancement through program
 int16_t main(void)
 {
     //Variable Setup
-    int results_A[5]; //Results of test AB
-    int results_B[5]; //Results of test BA
-    int results_C[5];
-    int results_D[5];
+    int results_A = 0;
+    int results_B = 0;
+    int results_C = 0;
+    int results_D = 0;
+    int results_E = 0;
+    int results_F = 0;
+    int switch_config_A[5] = {0x0009,0x0081,0x0201,0x0000,0x0000};
+    int switch_config_B[5] = {0x0006,0x0084,0x0204,0x0000,0x0000};
+    int switch_config_C[5] = {0x0042,0x0048,0x0440,0x0000,0x0000};
+    int switch_config_D[5] = {0x0202,0x0208,0x0300,0x0000,0x0000};
+    int switch_config_E[5] = {0x0000,0x0000,0x0000,0x0000,0x0000};
+    int switch_config_F[5] = {0x0000,0x0000,0x0000,0x0000,0x0000};
     stage = 0;  //Selects which wire pair to test
     
     //INIT
@@ -51,27 +54,26 @@ int16_t main(void)
         switch (stage) //Selects what test to perform
         {
             case 0:
-                testA(results_A); // Configures switches for test
+                results_A = test(switch_config_A); // Configures switches for test
                 stage ++;
                 break;
             case 1:
-                testB(results_B); // Configures switches for test
+                results_B = test(switch_config_B); // Configures switches for test
                 stage ++;
                 break;
             case 2:
-                testC(results_C); // Configures switches for test
+                results_C = test(switch_config_C); // Configures switches for test
                 stage ++;
             case 3:
-                testD(results_D); // Configures switches for test
+                results_D = test(switch_config_D); // Configures switches for test
                 stage ++;
                 break;
             default:
                 stage = 0;
                 break;
         }
-        
         //test_signal(); //Holds test procedure to visually confirm functioning switches
-        
-        analyze_test(results_A, results_B, results_C, results_D); //Analyze results, RED LED blink if good
+        delay();
+        analyze_test(results_A, results_B, results_C, results_D, results_E, results_F); //Analyze results, RED LED blink if good
     }
 }
