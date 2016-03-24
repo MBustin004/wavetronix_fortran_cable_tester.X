@@ -21,12 +21,12 @@ void InitApp(void)
     TRISA = 0x00; //Set Port A to output
     
     //SIGNAL & Enables
-    TRISB = 0x00A0; // Set port B as output, except RB5 (signal in) and 7 (EXINT0)
+    TRISB = 0x0020; // Set port B as output, except RB5 (signal in) and 7 (EXINT0)
     
     //External interrupt 0
-    INTCON2bits.INT0EP = 0; //EXT0 Rising edge
-	IFS0bits.INT0IF = 0; 	//Ensure EXT0 flag is 0
-	IEC0bits.INT0IE = 1; 	//Enable EXT0
+    //INTCON2bits.INT0EP = 0; //EXT0 Rising edge
+	//IFS0bits.INT0IF = 0; 	//Ensure EXT0 flag is 0
+	//IEC0bits.INT0IE = 1; 	//Enable EXT0
     
     //*******TIMER 1*********
     T1CON = 0x0;  //timer Setup
@@ -102,11 +102,17 @@ void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int te
                 LATBbits.LATB14 ^= 1;
                 delay();
             }
+            else
+            {
+                LATAbits.LATA0 ^= 1;
+                delay();
+                LATAbits.LATA0 ^= 1;
+            }
             
-            if (test_3 == 0x0000 && test_4 == 0x0004)
+            if (test_3 == 0x0008 && test_4 == 0x000C)
             {
                 LATBbits.LATB13 ^= 1;
-                delay();
+                    delay();
             }
         //}
 }
