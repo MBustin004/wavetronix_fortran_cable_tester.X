@@ -15,18 +15,22 @@
 
 void InitApp(void)
 {
+    //************************************************************
+    ///////MUST RECONFIGURE I/O to fit NEW SCHEMATIC/////////////
+    //************************************************************
+    
     //*******I/O Config*****
     AD1PCFGL = 0xFFFF; // Set all analog pins to digital
     //LEDs
     TRISA = 0x00; //Set Port A to output
     
     //SIGNAL & Enables
-    TRISB = 0x0020; // Set port B as output, except RB5 (signal in) and 7 (EXINT0)
+    TRISB = 0x00A0; // Set port B as output, except RB5 (signal in) and 7 (EXINT0)
     
     //External interrupt 0
-    //INTCON2bits.INT0EP = 0; //EXT0 Rising edge
-	//IFS0bits.INT0IF = 0; 	//Ensure EXT0 flag is 0
-	//IEC0bits.INT0IE = 1; 	//Enable EXT0
+    INTCON2bits.INT0EP = 0; //EXT0 Rising edge
+	IFS0bits.INT0IF = 0; 	//Ensure EXT0 flag is 0
+	IEC0bits.INT0IE = 1; 	//Enable EXT0
     
     //*******TIMER 1*********
     T1CON = 0x0;  //timer Setup
@@ -38,16 +42,19 @@ void InitApp(void)
     
 }
 
-int test (int procedure[5]) // setup switches for AB test
+int test (int procedure[1]) // setup switches for AB test
 {
     int i = 0;
     int results = 0;
-    for (i = 0; i < 5; i++)
+    LATB = procedure[i];
+    delay();
+    
+    for (i = 0; i < 5; i++) // This loop is to test each pin and fill results with the results
         {
             //Switch Setups
             LATB = procedure[i]; // TEST AB, turns off pin 11 signal
             //Signal Setup
-            LATBbits.LATB4 = 1; //signal on pin 11
+            //LATBbits.LATB4 = 1; //signal on pin 11
             delay();
             //pause_flash(); // flashes LEDS to show non-testing phase
             if (i>0)
@@ -70,49 +77,50 @@ void delay(void)
 
 void pause_flash (void)
 {
-    //test_stop = 1;
+    test_stop = 1;
     while(test_stop == 1)
     {
-        LATA ^=0x1F;
-        LATBbits.LATB15 ^= 1;
+        LATA ^=0x0F;
         delay();
     }
     delay();
 }
 
-void test_signal (void)
-{
-    //test_stop = 1;
-    while (test_stop == 1) //Blinks light if input is correct
-        {
-            if (PORTBbits.RB5 == 0) //Pin 14
-                {
-                    T1CONbits.TON = 1; // turn on timer 1
-                }
-        }
-}
-
 void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int test_6)
 {
-        //test_stop =1;
-        //while (test_stop == 1)
-        //{
-            if (test_1 == 0x0010 && test_2 == 0x0000)
-            {
-                LATBbits.LATB14 ^= 1;
-                delay();
-            }
-            else
-            {
-                LATAbits.LATA0 ^= 1;
-                delay();
-                LATAbits.LATA0 ^= 1;
-            }
-            
-            if (test_3 == 0x0008 && test_4 == 0x000C)
-            {
-                LATBbits.LATB13 ^= 1;
-                    delay();
-            }
-        //}
+    if (test_1 == 0x0012 && test_2 == 0x0002)
+    {
+        LATAbits.LATA0 ^= 1;
+        delay();
+    }
+    else
+    {
+        LATAbits.LATA4 ^= 1;
+        delay();
+        LATAbits.LATA4 ^= 1;
+    }
+
+    if (test_3 == 0x000A && test_4 == 0x000E)
+    {
+        LATAbits.LATA1 ^= 1;
+            delay();
+    }
+    else
+    {
+        LATAbits.LATA4 ^= 1;
+        delay();
+        LATAbits.LATA4 ^= 1;
+    }
+
+    if (test_5 == 0x0000 && test_6 == 0x000F)
+    {
+        LATAbits.LATA2 ^= 1;
+            delay();
+    }
+    else
+    {
+        LATBbits.LATB15 ^= 1;
+        delay();
+        LATBbits.LATB15 ^= 1;
+    }
 }

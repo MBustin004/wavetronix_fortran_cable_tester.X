@@ -33,24 +33,21 @@ int16_t main(void)
     int results_D = 0;
     int results_E = 0;
     int results_F = 0;
-    int switch_config_A[5] = {0x0009,0x0081,0x0201,0x0000,0x0000};
-    int switch_config_B[5] = {0x0006,0x0084,0x0204,0x0000,0x0000};
-    int switch_config_C[5] = {0x0042,0x0048,0x0440,0x0000,0x0000};
-    int switch_config_D[5] = {0x0202,0x0208,0x0300,0x0000,0x0000};
-    int switch_config_E[5] = {0x0000,0x0000,0x0000,0x0000,0x0000};
-    int switch_config_F[5] = {0x0000,0x0000,0x0000,0x0000,0x0000};
+    int switch_config_A[5] = {0x0009,0x0101,0x0401,0x1001,0x4001};
+    int switch_config_B[5] = {0x0006,0x0104,0x0404,0x1004,0x4004};
+    int switch_config_C[5] = {0x0042,0x0048,0x0440,0x1040,0x4040};
+    int switch_config_D[5] = {0x0202,0x0208,0x0300,0x1200,0x4020};
+    int switch_config_E[5] = {0x0802,0x0808,0x0900,0x0C00,0x4800};
+    int switch_config_F[5] = {0x2002,0x2008,0x2100,0x2400,0x3000};
     stage = 0;  //Selects which wire pair to test
     
     //INIT
     ConfigureOscillator();
     InitApp(); //Init MCU Interrupts and I/O
     
-    //LED Activation
-    LATA = 0x1F;  //Port A high for LED output Pins 1-5
-    LATBbits.LATB15 = 1; // RB15 LED output, pin 26
-    
     while(1)
     {
+        LATB = 0x0;
         switch (stage) //Selects what test to perform
         {
             case 0:
@@ -64,8 +61,17 @@ int16_t main(void)
             case 2:
                 results_C = test(switch_config_C); // Configures switches for test
                 stage ++;
+                break;
             case 3:
                 results_D = test(switch_config_D); // Configures switches for test
+                stage ++;
+                break;
+            case 4:
+                results_E = test(switch_config_E); // Configures switches for test
+                stage ++;
+                break;
+            case 5:
+                results_F = test(switch_config_F); // Configures switches for test
                 stage ++;
                 break;
             default:

@@ -14,7 +14,6 @@ void InitApp(void);         /* I/O and Peripheral Initialization */
 int test (int procedure[5]);
 void delay (void);
 void pause_flash (void);
-void test_signal (void);
 void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int test_6);
 
 
