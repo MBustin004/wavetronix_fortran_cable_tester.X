@@ -11,10 +11,10 @@
 /* TODO User level functions prototypes (i.e. InitApp) go here */
 
 void InitApp(void);         /* I/O and Peripheral Initialization */
-int test (int config[5]);
+int test_procedure (int results_array [6]);
+int test (int *config);
 void delay (void);
 void pause_flash (void);
-void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int test_6);
-
+void analyze_test (int tests[6]);
 
 extern int test_stop;

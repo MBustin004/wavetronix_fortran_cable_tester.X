@@ -11,7 +11,8 @@
 
 #include <stdint.h>          /* For uint16_t definition                       */
 #include <stdbool.h>         /* For true/false definition                     */
-#include "user.h"            /* variables/params used by user.c               */
+#include "user.h"
+#include "p33FJ64GP802.h"            /* variables/params used by user.c               */
 
 void InitApp(void)
 {
@@ -37,6 +38,48 @@ void InitApp(void)
     
     delay(); // Gives Switches and MCU time to settle
     
+}
+
+int test_procedure (int results_array[6])
+{
+    int stage = 0; //for selecting wire pair to test
+    
+    //switch_config_* each contains the I/O pin configurations for each test
+    int switch_config_A[5] = {0x0009,0x0101,0x0401,0x1001,0x4001};
+    int switch_config_B[5] = {0x0006,0x0104,0x0404,0x1004,0x4004};
+    int switch_config_C[5] = {0x0042,0x0048,0x0440,0x1040,0x4040};
+    int switch_config_D[5] = {0x0202,0x0208,0x0300,0x1200,0x4020};
+    int switch_config_E[5] = {0x0802,0x0808,0x0900,0x0C00,0x4800};
+    int switch_config_F[5] = {0x2002,0x2008,0x2100,0x2400,0x3000};
+    
+    for (stage = 0; stage < 6; stage ++)
+        {
+            switch (stage) 
+            {
+                case 0:
+                    results_array[stage] = test(switch_config_A); // Configures switches for test
+                    break;
+                case 1:
+                    results_array[stage] = test(switch_config_B); // Configures switches for test
+                    break;
+                case 2:
+                    results_array[stage] = test(switch_config_C); // Configures switches for test
+                    break;
+                case 3:
+                    results_array[stage] = test(switch_config_D); // Configures switches for test
+                    break;
+                case 4:
+                    results_array[stage] = test(switch_config_E); // Configures switches for test
+                    break;
+                case 5:
+                    results_array[stage] = test(switch_config_F); // Configures switches for test
+                    break;
+                default:
+                    stage = 0;
+                    break;
+            }
+        }
+    return results_array;
 }
 
 int test (int config[5]) //Performs test for given line
@@ -79,10 +122,36 @@ void pause_flash (void)
     delay();
 }
 
-void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int test_6)
+void analyze_test (int tests[6])
 {
+    int i = 0;
+    int examine = 0;
+    //Comparison_array contains the template values that the results SHOULD be
+    int comparison_array[6] = {0x0012,0x0002,0x000A,0x000E,0x0000,0x000F};
+    int foo[6] = {0x0012,0x0002,0x000A,0x000E,0x0000,0x000F};
+    int foo_results[6] = {0x0002,0x0012,0x0012,0x0016,0x0000,0x0017};
+    
+    for (i = 0; i<6; i++)
+    {
+        foo[i] ^= foo_results[i];
+    }
+    
+    //Is A correct?
+    examine = foo[1];
+    examine &= 0x0010;
+    if (examine == 1)
+    {
+        LATAbits.LATA4 ^= 1;
+    }
+    
+    /*//This loop determines if there are any bits that are out of order by clearing out the matching pairs
+    for (i = 0; i<6; i++)
+    {
+        comparison_array[i] ^= tests[i];
+    }
+    
     //Compares test results with correct template, if equal then blink LED
-    if (test_1 == 0x0012 && test_2 == 0x0002)
+    if (comparison_array[0] == 0 && comparison_array[1] == 0)
     {
         LATAbits.LATA0 ^= 1;
         delay();
@@ -94,7 +163,7 @@ void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int te
         LATAbits.LATA4 ^= 1;
     }
 
-    if (test_3 == 0x000A && test_4 == 0x000E)
+    if (comparison_array[2] == 0 && comparison_array[3] == 0)
     {
         LATAbits.LATA1 ^= 1;
             delay();
@@ -106,7 +175,7 @@ void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int te
         LATAbits.LATA4 ^= 1;
     }
 
-    if (test_5 == 0x0000 && test_6 == 0x000F)
+    if (comparison_array[4] == 0 && comparison_array[5] == 0)
     {
         LATAbits.LATA2 ^= 1;
             delay();
@@ -116,5 +185,5 @@ void analyze_test (int test_1,int test_2,int test_3,int test_4,int test_5,int te
         LATBbits.LATB15 ^= 1;
         delay();
         LATBbits.LATB15 ^= 1;
-    }
+    }*/
 }
