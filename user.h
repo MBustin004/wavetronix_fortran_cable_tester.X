@@ -12,7 +12,7 @@
 
 void InitApp(void);         /* I/O and Peripheral Initialization */
 int test_procedure (int results_array [6]);
-int test (int *config);
+int test (int config[6]);
 void delay (void);
 void pause_flash (void);
 void analyze_test (int tests[6]);
