@@ -12,7 +12,7 @@
 #include <stdint.h>          /* For uint16_t definition                       */
 #include <stdbool.h>         /* For true/false definition                     */
 #include "user.h"
-#include "p33FJ64GP802.h"            /* variables/params used by user.c               */
+#include "p33FJ64GP802.h"            /* variables/params used by user.c       */
 
 void InitApp(void)
 {
@@ -48,7 +48,7 @@ int test_procedure (int results_array[6])
     int switch_config_A[6] = {0x0000,0x0009,0x0101,0x0401,0x1001,0x4001};
     int switch_config_B[6] = {0x0006,0x0000,0x0104,0x0404,0x1004,0x4004};
     int switch_config_C[6] = {0x0042,0x0048,0x0000,0x0440,0x1040,0x4040};
-    int switch_config_D[6] = {0x0202,0x0208,0x0300,0x0000,0x1200,0x4020};
+    int switch_config_D[6] = {0x0202,0x0208,0x0300,0x0000,0x1200,0x4200};
     int switch_config_E[6] = {0x0802,0x0808,0x0900,0x0C00,0x0000,0x4800};
     int switch_config_F[6] = {0x2002,0x2008,0x2100,0x2400,0x3000,0x0000};
     
@@ -116,10 +116,18 @@ void pause_flash (void)
     test_stop = 1;
     while(test_stop == 1)
     {
-        LATA ^=0x0F;
-        delay();
     }
     delay();
+}
+
+void led_out(int out)
+{
+    LATBbits.LATB15 = (0x0001 & out);
+    LATAbits.LATA4 = (0x0002 & out) >> 1;
+    LATBbits.LATB4 = (0x0004 & out) >> 2;
+    LATAbits.LATA2 = (0x0008 & out) >> 3;
+    LATAbits.LATA1 = (0x0010 & out) >> 4;
+    LATAbits.LATA0 = (0x0020 & out) >> 5;
 }
 
 void analyze_test (int tests[6])
@@ -135,12 +143,14 @@ void analyze_test (int tests[6])
     int comparison_array[6] = {0x0012,0x0002,0x0012,0x001A,0x0000,0x001E}; //this is WITH extra diode
     //int comparison_array[6] = {0x0012,0x002,0x0000,0x0008,0x0000,0x000C}; // this is with only 4 diodes
     //Foo is the test results
-    int foo[6] = {0x0002,0x0022,0x0022,0x002A,0x0000,0x002E};
+    //int foo[6] = {0x0002,0x0022,0x0022,0x002A,0x0000,0x002E};
     
     // This XORs the results and the templates, problems are high
     for (i = 0; i<6; i++) 
     {
         comparison_array[i] ^= tests[i];
+        led_out(tests[i]);
+        pause_flash();
     }
     
     //BEGIN POLLING ALGORITHM
@@ -163,9 +173,9 @@ void analyze_test (int tests[6])
     guilty_threshold2= 1;
     for (i=0; i<6; i++)
     {
-        if ((polls[i] > guilty_threshold) || (polls[i] > guilty_threshold2))
+        if ((polls[i] >= guilty_threshold) || (polls[i] >= guilty_threshold2))
         {
-            if (guilty_threshold > guilty_threshold2)
+            if (guilty_threshold >= guilty_threshold2)
             {
                 examine[1] = examine[0];
                 guilty_threshold2 = guilty_threshold;
@@ -176,50 +186,16 @@ void analyze_test (int tests[6])
     }
 
     //turns on LATA based on analysis
-    examine[2] = (0x0001 << (examine[0]-1));
-    examine[3] = (0x0001 << (examine[1]-1));
-    examine[2] |= examine[3];
-    LATA = examine[2];
-    delay();
-    delay();
-    delay();
-    delay();
-    
-    
-    /*//Compares test results with correct template, if equal then blink LED
-    if (comparison_array[0] == 0 && comparison_array[1] == 0)
+    if ((examine[0] > 0) || (examine[1] > 0))
     {
-        LATAbits.LATA0 ^= 1;
+        examine[2] = (0x0001 << (examine[0]-1));
+        examine[3] = (0x0001 << (examine[1]-1));
+        examine[2] |= examine[3];
+        LATA = examine[2];
+        //pause_flash();
+        delay();
+        delay();
+        delay();
         delay();
     }
-    else
-    {
-        LATAbits.LATA4 ^= 1;
-        delay();
-        LATAbits.LATA4 ^= 1;
-    }
-
-    if (comparison_array[2] == 0 && comparison_array[3] == 0)
-    {
-        LATAbits.LATA1 ^= 1;
-            delay();
-    }
-    else
-    {
-        LATAbits.LATA4 ^= 1;
-        delay();
-        LATAbits.LATA4 ^= 1;
-    }
-
-    if (comparison_array[4] == 0 && comparison_array[5] == 0)
-    {
-        LATAbits.LATA2 ^= 1;
-            delay();
-    }
-    else
-    {
-        LATBbits.LATB15 ^= 1;
-        delay();
-        LATBbits.LATB15 ^= 1;
-    }*/
 }

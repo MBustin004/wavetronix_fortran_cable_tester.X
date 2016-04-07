@@ -35,7 +35,6 @@ int16_t main(void)
     {
         LATB = 0x0; // Turns off switches and LEDS for a fresh start
         LATA = 0x0;
-        delay(); //Give MCU time to settle
         
         //*****Selects what test to perform*****
         test_procedure(data);
