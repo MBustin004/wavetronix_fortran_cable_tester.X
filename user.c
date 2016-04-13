@@ -134,68 +134,52 @@ void analyze_test (int tests[6])
 {
     int i = 0; //for counting
     int j = 0; //for counting
-    int examine[6] = {0}; //generic container
-    int guilty_threshold = 1; //variable for determining guilty pins, starts at one to ignore 0 votes
-    int guilty_threshold2= 1;
-    int polls[6] = {0};
+    int examine = 0; //generic container
     
     //Comparison_array contains the template values that the results SHOULD be
-    int comparison_array[6] = {0x0012,0x0002,0x0012,0x001A,0x0000,0x001E}; //this is WITH extra diode
-    //int comparison_array[6] = {0x0012,0x002,0x0000,0x0008,0x0000,0x000C}; // this is with only 4 diodes
+    int comparison_array[6] = {0x001F,0x002F,0x0037,0x003B,0x003D,0x003E}; //this is WITH extra diode
     //Foo is the test results
-    //int foo[6] = {0x0002,0x0022,0x0022,0x002A,0x0000,0x002E};
+    int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
+                    {0, 0, 0, 0, 0, 0}};                          //Row 1 = negative polarity deduced from results
     
-    // This XORs the results and the templates, problems are high
-    for (i = 0; i<6; i++) 
+    //This set of loops deduces whether or not there is a break or if there is reverse polarity
+    for (i=0; i<6;i++)
     {
-        comparison_array[i] ^= tests[i];
-        led_out(tests[i]);
-        pause_flash();
-    }
-    
-    //BEGIN POLLING ALGORITHM
-    for (i=0; i<6; i++) // Loop for each set of tests
-    {
-        for (j=5; j>(-1); j--) // Loop to sum number of flagged errors
+        for (j=0; j<6;j++)
         {
-            examine[0] = 0x0001;
-            examine[0] <<= j;
-            examine[0] &= comparison_array[i];
-            examine[0] >>= j;
-            polls[(5-j)] += examine[0];
-        }
-    }
-    
-    //Determine most votes
-    examine[0] = 0;
-    examine[1] = 0;
-    guilty_threshold = 1; //variable for determining guilty pins, starts at one to ignore 0 votes
-    guilty_threshold2= 1;
-    for (i=0; i<6; i++)
-    {
-        if ((polls[i] >= guilty_threshold) || (polls[i] >= guilty_threshold2))
-        {
-            if (guilty_threshold >= guilty_threshold2)
+            if (i == j) //skips loop if it is the loop to test itself
             {
-                examine[1] = examine[0];
-                guilty_threshold2 = guilty_threshold;
+                continue;
             }
-            examine[0] = (i+1); //must be i+1 because a 0 in examine means nothing is wrong (1=A, 2=B, etc.)
-            guilty_threshold = polls[i];
+            
+            examine = (0x01 <<(5 - j));//these lines before the next if extract a bit to determine if there is a connection A->B
+            examine &= foo[0][i];
+            
+            if (examine > 0)   //Is there A->B?
+            {
+                continue;
+            }
+            
+            examine = (0x01 <<(5 - (i + j))); //These lines determine if there is B->A
+            examine &= foo[0][j];
+            
+            if (examine > 0)  //Is there B->A?
+            {
+                foo[1][i] |= (examine << i);
+            }
         }
     }
-
-    //turns on LATA based on analysis
-    if ((examine[0] > 0) || (examine[1] > 0))
-    {
-        examine[2] = (0x0001 << (examine[0]-1));
-        examine[3] = (0x0001 << (examine[1]-1));
-        examine[2] |= examine[3];
-        LATA = examine[2];
-        //pause_flash();
-        delay();
-        delay();
-        delay();
-        delay();
-    }
+    
+    led_out(foo[0][0]);
+    pause_flash();
+    led_out(foo[1][0]);
+    pause_flash();
+    led_out(foo[0][1]);
+    pause_flash();
+    led_out(foo[1][1]);
+    pause_flash();
+    led_out(foo[0][2]);
+    pause_flash();
+    led_out(foo[1][2]);
+    pause_flash();
 }
