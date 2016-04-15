@@ -40,7 +40,7 @@ void InitApp(void)
     
 }
 
-int test_procedure (int results_array[6])
+int test_procedure (int results_array[2][6])
 {
     int stage = 0; //for selecting wire pair to test
     
@@ -57,22 +57,22 @@ int test_procedure (int results_array[6])
             switch (stage) 
             {
                 case 0:
-                    results_array[stage] = test(switch_config_A); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_A); // Configures switches for test
                     break;
                 case 1:
-                    results_array[stage] = test(switch_config_B); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_B); // Configures switches for test
                     break;
                 case 2:
-                    results_array[stage] = test(switch_config_C); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_C); // Configures switches for test
                     break;
                 case 3:
-                    results_array[stage] = test(switch_config_D); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_D); // Configures switches for test
                     break;
                 case 4:
-                    results_array[stage] = test(switch_config_E); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_E); // Configures switches for test
                     break;
                 case 5:
-                    results_array[stage] = test(switch_config_F); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_F); // Configures switches for test
                     break;
                 default:
                     stage = 0;
@@ -130,10 +130,9 @@ void led_out(int out)
     LATAbits.LATA0 = (0x0020 & out) >> 5;
 }
 
-void analyze_test (int tests[6])
+void analyze_test (int tests[2][6])
 {
-    int i = 0; //for counting
-    int j = 0; //for counting
+    int i, j; //for counting
     int examine = 0; //generic container
     
     //Comparison_array contains the template values that the results SHOULD be
@@ -147,39 +146,48 @@ void analyze_test (int tests[6])
     {
         for (j=0; j<6;j++)
         {
+            //led_out(j);
+            //pause_flash();
             if (i == j) //skips loop if it is the loop to test itself
             {
                 continue;
             }
             
             examine = (0x01 <<(5 - j));//these lines before the next if extract a bit to determine if there is a connection A->B
-            examine &= foo[0][i];
+            //led_out(examine);
+            //pause_flash();
+            examine &= tests[0][i];
+            //led_out(examine);
+            //pause_flash();
             
             if (examine > 0)   //Is there A->B?
             {
                 continue;
             }
             
-            examine = (0x01 <<(5 - (i + j))); //These lines determine if there is B->A
-            examine &= foo[0][j];
+            examine = (0x01 <<(5 - i)); //These lines determine if there is B->A
+            //led_out(examine);
+            //pause_flash();
+            examine &= tests[0][j];
+            //led_out(examine);
+            //pause_flash();
             
             if (examine > 0)  //Is there B->A?
             {
-                foo[1][i] |= (examine << i);
+            tests[1][i] |= (0x01 << (5 - j)); // Adds A bit to Neg Reg for C
+            //led_out(tests[1][i]);
+            //pause_flash();
             }
         }
     }
     
-    led_out(foo[0][0]);
-    pause_flash();
-    led_out(foo[1][0]);
-    pause_flash();
-    led_out(foo[0][1]);
-    pause_flash();
-    led_out(foo[1][1]);
-    pause_flash();
-    led_out(foo[0][2]);
-    pause_flash();
-    led_out(foo[1][2]);
-    pause_flash();
+    //FIX B->A!!!!!!!!!!!!!!!!!!!!!!***************************************
+    for (i=0;i<6;i++)
+    {
+        for(j=0;j<2;j++)
+        {
+            led_out(tests[j][i]);
+            pause_flash();
+        }
+    }
 }

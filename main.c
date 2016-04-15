@@ -25,7 +25,7 @@ int test_stop = 0; //Global for manual advancement through program
 
 int16_t main(void)
 {
-    int data [6];
+    int data [2][6] = {{0}};
     //*****INIT*****
     ConfigureOscillator(); // Generic MCU setup
     InitApp(); //Init MCU Interrupts and I/O
