@@ -58,21 +58,27 @@ int test_procedure (int results_array[2][6])
             {
                 case 0:
                     results_array[0][stage] = test(switch_config_A); // Configures switches for test
+                    results_array[1][stage] = 0; //Clears negative polarity data from previous test procedure
                     break;
                 case 1:
-                    results_array[0][stage] = test(switch_config_B); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_B);
+                    results_array[1][stage] = 0;
                     break;
                 case 2:
-                    results_array[0][stage] = test(switch_config_C); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_C);
+                    results_array[1][stage] = 0;
                     break;
                 case 3:
-                    results_array[0][stage] = test(switch_config_D); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_D);
+                    results_array[1][stage] = 0;
                     break;
                 case 4:
-                    results_array[0][stage] = test(switch_config_E); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_E);
+                    results_array[1][stage] = 0;
                     break;
                 case 5:
-                    results_array[0][stage] = test(switch_config_F); // Configures switches for test
+                    results_array[0][stage] = test(switch_config_F);
+                    results_array[1][stage] = 0;
                     break;
                 default:
                     stage = 0;
@@ -181,7 +187,6 @@ void analyze_test (int tests[2][6])
         }
     }
     
-    //FIX B->A!!!!!!!!!!!!!!!!!!!!!!***************************************
     for (i=0;i<6;i++)
     {
         for(j=0;j<2;j++)
