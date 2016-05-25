@@ -136,8 +136,8 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt (void)
 void __attribute__((interrupt,no_auto_psv)) _INT0Interrupt(void)
 {
 	IFS0bits.INT0IF = 0; //Set EXT0 flag is 0
-	LATAbits.LATA1 ^= 1; //Toggle LED
+	LATAbits.LATA4 ^= 1; //Toggle LED
     delay();
-	LATAbits.LATA2 ^= 1; //Toggle LED
+	LATAbits.LATA4 ^= 1; //Toggle LED
     test_stop = 0;
 }

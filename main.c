@@ -1,7 +1,3 @@
-/******************************************************************************/
-/* Files to Include                                                           */
-/******************************************************************************/
-
 /* Device header file */
 #if defined(__XC16__)
     #include <xc.h>
@@ -13,7 +9,6 @@
     #endif
 #endif
 
-
 #include <stdint.h>        /* Includes uint16_t definition                    */
 #include <stdbool.h>       /* Includes true/false definition                  */
 #include <p33FJ64GP802.h>
@@ -23,7 +18,6 @@
 /******************************************************************************/
 /* Global Variable Declaration                                                */
 /******************************************************************************/
-int stage = 0; //for selecting wire pair to test
 int test_stop = 0; //Global for manual advancement through program
 /******************************************************************************/
 /* Main Program                                                               */
@@ -31,60 +25,22 @@ int test_stop = 0; //Global for manual advancement through program
 
 int16_t main(void)
 {
-    //Variable Setup
-    int AB = 0; //Results of test AB
-    int BA = 1; //Results of test BA
-    int CD = 1;
-    int DC = 0;
-    int result = 0;
-    stage = 0;  //Selects which wire pair to test
-    
-    //INIT
-    ConfigureOscillator();
+    int data [2][6] = {{0}};
+    //*****INIT*****
+    ConfigureOscillator(); // Generic MCU setup
     InitApp(); //Init MCU Interrupts and I/O
     
-    //LED Activation
-    LATA = 0x1F;  //Port A high for LED output Pins 1-5
-    LATBbits.LATB15 = 1; // RB15 LED output, pin 26
-    
-    //Signal Setup
-    LATBbits.LATB4 = 1; //signal on pin 11
-    
-    while(1)
+    //*****Main Loop*****
+    while(1) 
     {
-        switch (stage) //Selects what test to perform
-        {
-            case 0:
-                testAB(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
-                AB = PORTBbits.RB5;
-                stage ++;
-                break;
-            case 1:
-                testBA(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
-                BA = PORTBbits.RB5;
-                stage ++;
-                break;
-            case 2:
-                testCD(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
-                CD = PORTBbits.RB5;
-                stage ++;
-                break;
-            case 3:
-                testDC(); // Configures switches for test
-                pause_flash(); // flashes LEDS to show non-testing phase
-                DC = PORTBbits.RB5;
-                stage ++;
-                break;
-            default:
-                stage = 0;
-                break;
-        }
+        LATB = 0x0; // Turns off switches and LEDS for a fresh start
+        LATA = 0x0;
         
-        test_signal(); //Holds test procedure to visually confirm functioning switches
+        //*****Selects what test to perform*****
+        test_procedure(data);
+        delay(); //Gives MCU and switches time to settle
         
-        result = analyze_test(AB, BA, CD, DC); //Analyze results, RED LED blink if good
+        //*****Analyzing the results of the tests performed*****
+        analyze_test(data);
     }
 }
