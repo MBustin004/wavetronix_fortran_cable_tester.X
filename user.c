@@ -40,7 +40,7 @@ void InitApp(void)
     
 }
 
-int test_procedure (int results_array[2][6])
+void test_procedure (int results_array[2][6])
 {
     int stage = 0; //for selecting wire pair to test
     
@@ -85,7 +85,6 @@ int test_procedure (int results_array[2][6])
                     break;
             }
         }
-    return results_array;
 }
 
 int test (int config[6]) //Performs test for given line
@@ -117,7 +116,7 @@ void delay(void)
     }
 }
 
-void pause_flash (void)
+void pause (void)
 {
     test_stop = 1;
     while(test_stop == 1)
@@ -138,61 +137,80 @@ void led_out(int out)
 
 void analyze_test (int tests[2][6])
 {
-    int i, j; //for counting
-    int examine = 0; //generic container
-    
-    //Comparison_array contains the template values that the results SHOULD be
-    int comparison_array[6] = {0x001F,0x002F,0x0037,0x003B,0x003D,0x003E}; //this is WITH extra diode
-    //Foo is the test results
+    int comparison_array[6] = {0x001F,0x000F,0x0007,0x0003,0x0001,0x0000};//Comparison_array contains the template values that the results SHOULD be
+    int conclusion = 0;
+    //Foo is a sample set of test results
     int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
                     {0, 0, 0, 0, 0, 0}};                          //Row 1 = negative polarity deduced from results
     
-    //This set of loops deduces whether or not there is a break or if there is reverse polarity
+    led_out(0xFFFF);
+    pause();
+    
+    //First we deduce negative polarity for conclusions - this identifies breaks
+    prep_neg(tests);
+    //Identifies any broken connections (no connections to anything)
+    conclusion = detect_break(tests);
+    led_out(conclusion);
+    pause();
+    
+    
+}
+
+void prep_neg(int samples[2][6])
+{
+    int i, j;
+    int examine = 0;
+    
+    //This set of loops deduces if there is reverse polarity
     for (i=0; i<6;i++)
     {
         for (j=0; j<6;j++)
         {
-            //led_out(j);
-            //pause_flash();
             if (i == j) //skips loop if it is the loop to test itself
             {
                 continue;
             }
-            
-            examine = (0x01 <<(5 - j));//these lines before the next if extract a bit to determine if there is a connection A->B
-            //led_out(examine);
-            //pause_flash();
-            examine &= tests[0][i];
-            //led_out(examine);
-            //pause_flash();
-            
+            examine = (0x01 <<(5 - j));//extract a bit to determine if there is a connection A->B
+            examine &= samples[0][i];
             if (examine > 0)   //Is there A->B?
             {
                 continue;
             }
-            
-            examine = (0x01 <<(5 - i)); //These lines determine if there is B->A
-            //led_out(examine);
-            //pause_flash();
-            examine &= tests[0][j];
-            //led_out(examine);
-            //pause_flash();
-            
+            examine = (0x01 <<(5 - i)); //determine if there is B->A
+            examine &= samples[0][j];
             if (examine > 0)  //Is there B->A?
             {
-            tests[1][i] |= (0x01 << (5 - j)); // Adds A bit to Neg Reg for C
-            //led_out(tests[1][i]);
-            //pause_flash();
+            samples[1][i] |= (0x01 << (5 - j)); //Adds A bit to Neg Reg for C
             }
         }
     }
+}
+
+int detect_break(int results[2][6])
+{
+    int i, j; //for counting
+    int connection = 0;
+    int examine = 0;
+    int deduction = 0;
     
     for (i=0;i<6;i++)
     {
-        for(j=0;j<2;j++)
+        connection = 0;
+        
+        for(j=0;j<6;j++)
         {
-            led_out(tests[j][i]);
-            pause_flash();
+            if (i == j) //skips loop if it is the loop to test itself
+            {
+                continue;
+            }
+            examine = (0x01 << (5 - i));
+            connection |= (results[0][j] & examine);
+            connection |= (results[1][j] & examine);
+        }
+        if (connection == 0)
+        {
+            deduction |= examine;
         }
     }
+    return deduction;
 }
