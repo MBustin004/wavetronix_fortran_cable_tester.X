@@ -143,13 +143,17 @@ void analyze_test (int tests[2][6])
     int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
                     {0, 0, 0, 0, 0, 0}};                          //Row 1 = negative polarity deduced from results
     
-    led_out(0xFFFF);
+    led_out(0x3F);
     pause();
     
     //First we deduce negative polarity for conclusions - this identifies breaks
     prep_neg(tests);
     //Identifies any broken connections (no connections to anything)
     conclusion = detect_break(tests);
+    led_out(conclusion);
+    pause();
+    //Identifies swapped position of conductors
+    conclusion = detect_position(tests, conclusion);
     led_out(conclusion);
     pause();
     
@@ -213,4 +217,44 @@ int detect_break(int results[2][6])
         }
     }
     return deduction;
+}
+
+int detect_position(int results[2][6], int errors)
+{
+    int i, j, pos_num, neg_num, swaps = 0;
+    
+    for (i=0; i<6; i++)
+    {
+        pos_num = 0;
+        neg_num = 0;
+        
+        for(j=0; j<6; j++)
+        {
+            if (i == j) // don't asses A -> A
+            {
+                continue;
+            }
+            else if (((errors & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
+            {
+                pos_num += 1;
+                continue;
+            }
+            else
+            {
+                pos_num += (((results[0][i] & (0x01 << (5 - j)))) >> (5 - j)); //finds positive connections
+                neg_num += ((results[1][i] & (0x01 << (5 - j))) >> (5-j)); //same with neg
+            }
+        }
+        
+        if (pos_num != (5-i))
+        {
+            swaps |= (0x01 << (5 - i));
+        }
+        
+        if (neg_num != i)
+        {
+            swaps |= (0x01 << (5 - i));
+        }
+    }
+    return swaps;
 }
