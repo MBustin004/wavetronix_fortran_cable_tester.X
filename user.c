@@ -137,23 +137,19 @@ void led_out(int out)
 
 void analyze_test (int tests[2][6])
 {
-    int conclusion, i, finals = 0;
-    //Foo is a sample set of test results
-    int foo[2][6] = {{0x001B,0x0003,0x0013,0x0000,0x0001,0x0000}, //Row 0 = results from the test
+    int conclusion = 0;
+    //Foo is a sample set of test results for testing algorithm
+    int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
                     {0, 0, 0, 0, 0, 0}};                         //Row 1 = negative polarity deduced from results
     
-    led_out(0x3F);
+    led_out(0x3F); // Stop point for visual testing
     pause();
     
     //First we deduce negative polarity for conclusions
-    prep_neg(foo);
+    prep_neg(tests);
     //Identifies any broken connections (no connections to anything)
-    conclusion = detect_break(foo);
+    conclusion = detect_problems(tests);
     led_out(conclusion);
-    pause();
-    //Identifies swapped position of conductors
-    finals = detect_position(foo, conclusion);
-    led_out(finals);
     pause();
 }
 
@@ -187,14 +183,17 @@ void prep_neg(int samples[2][6])
     }
 }
 
-int detect_break(int results[2][6])
+int detect_problems(int results[2][6])
 {
-    int i, j; //for counting
-    int connection = 0;
-    int examine = 0;
-    int deduction = 0;
+    int i, j = 0; // for counting
+    int pos_num, neg_num = 0; // stores number of connections (pos/neg polarity) when detecting position
+    int num_breaks = 0; // The total number of breaks
+    int failures = 0; // The final conclusion as to which connections have problems
+    int connection = 0; // If there is a connection, this will go high
+    int examine = 0; // variable for selecting a bit to examine
+    int breaks = 0; // ID of which connections are broken
     
-    for (i=0;i<6;i++)
+    for (i=0;i<6;i++) // This loop identifies which connections are broken
     {
         connection = 0;
         
@@ -204,32 +203,28 @@ int detect_break(int results[2][6])
             {
                 continue;
             }
+            //these lines extract a bit from pos/neg registers to determine if there is a connection
             examine = (0x01 << (5 - i));
             connection |= (results[0][j] & examine);
             connection |= (results[1][j] & examine);
         }
         if (connection == 0)
         {
-            deduction |= examine;
+            breaks |= examine;
         }
     }
-    return deduction;
-}
-
-int detect_position(int results[2][6], int errors)
-{
-    int i, j, pos_num, neg_num, num_errors, swaps = 0;
     
+    ///THE LINES FROM HERE DOWN CHECK FOR SWAPS....I WANTED 2 FUNCTIONS BUT C SAID NOOOOOO
     for (i=0;i<6;i++) // This checks to see if there are NO connections, returns same results
     {
-        num_errors += ((errors & (0x01 << (5-i))) >> (5-i));
-        if (num_errors > 4)
+        num_breaks += ((breaks & (0x01 << (5-i))) >> (5-i));
+        if (num_breaks > 4)
         {
-            return errors;
+            return breaks;
         }
     }
     
-    for (i=0; i<6; i++)
+    for (i=0; i<6; i++) // THIS DETECTS THE SWAPS
     {
         pos_num = 0;
         neg_num = 0;
@@ -240,9 +235,9 @@ int detect_position(int results[2][6], int errors)
             {
                 continue;
             }
-            else if (((errors & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
+            else if (((breaks & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
             {
-                if (i < j)
+                if (i < j) // this if/elseif is to increase the appropriate pos/neg connection
                 {
                     pos_num += 1;
                 }
@@ -260,15 +255,15 @@ int detect_position(int results[2][6], int errors)
             }
         }
         
-        if (pos_num != (5-i))
+        if (pos_num != (5-i)) // Are there the right number of positive connections?
         {
-            swaps |= (0x01 << (5 - i));
+            failures |= (0x01 << (5 - i));
         }
-        
-        if (neg_num != i)
+
+        if (neg_num != i) // Are there the right number of negative connections?
         {
-            swaps |= (0x01 << (5 - i));
+            failures |= (0x01 << (5 - i));
         }
     }
-    return swaps;
+    return failures;
 }

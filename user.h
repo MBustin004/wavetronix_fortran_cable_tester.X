@@ -18,7 +18,6 @@ void delay (void);
 void pause (void);
 void led_out(int out);
 void analyze_test (int tests[2][6]);
-int detect_break(int results[2][6]);
-int detect_position(int results[2][6], int conclusion);
+int detect_problems(int results[2][6]);
 
 extern int test_stop;
