@@ -142,15 +142,21 @@ void analyze_test (int tests[2][6])
     int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
                     {0, 0, 0, 0, 0, 0}};                         //Row 1 = negative polarity deduced from results
     
+    delay();
     led_out(0x3F); // Stop point for visual testing
-    pause();
+    delay();
+    //pause();
     
     //First we deduce negative polarity for conclusions
     prep_neg(tests);
     //Identifies any broken connections (no connections to anything)
     conclusion = detect_problems(tests);
     led_out(conclusion);
-    pause();
+    delay();
+    delay();
+    delay();
+    delay();
+    //pause();
 }
 
 void prep_neg(int samples[2][6])
