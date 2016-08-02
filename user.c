@@ -14,7 +14,7 @@
 #include "user.h"
 #include "p33FJ64GP802.h"            /* variables/params used by user.c       */
 
-void InitApp(void)
+void InitApp(void) // Standard initialization function for I/O, Timers, and Interrupts
 {
     //*******I/O Config*****
     AD1PCFGL = 0xFFFF; // Set all analog pins to digital
@@ -99,10 +99,13 @@ int test (int config[6]) //Performs test for given line
     //are the individual results of each test.
     for (i = 0; i < 6; i++)
         {
-            LATB = config[i]; //pin config for desired test switch configuration
+            LATB &= 0x8010;
+            LATB |= config[i]; //pin config for desired test switch configuration
             delay(); // To settle switches
             results <<= 1; //Create new bit "slot" for test result
             results |= PORTBbits.RB5; //Store test result
+            led_out((i+(i<<i)));
+            //pause();
         }
     return results;
 }
@@ -125,8 +128,35 @@ void pause (void)
     delay();
 }
 
+void pause_and_show (struct BadStuff lights)
+{
+    int flipper = 0x003F;
+    //led_out(lights.no_connection);
+    //pause();
+    //led_out(lights.swapped_wires);
+    //pause();
+    test_stop = 1;
+    while(test_stop == 1)
+    {
+        led_out((lights.no_connection | lights.swapped_wires));
+        delay();
+        delay();
+        delay();
+        delay();
+        delay();
+        led_out(lights.no_connection & (flipper ^= lights.swapped_wires));
+        delay();
+        delay();
+        delay();
+        delay();
+        delay();
+    }
+    delay();
+}
+
 void led_out(int out)
 {
+    out ^= 0xFFFF;
     LATBbits.LATB15 = (0x0001 & out);
     LATAbits.LATA4 = (0x0002 & out) >> 1;
     LATBbits.LATB4 = (0x0004 & out) >> 2;
@@ -137,26 +167,17 @@ void led_out(int out)
 
 void analyze_test (int tests[2][6])
 {
-    int conclusion = 0;
+    struct BadStuff conclusion;
+    //int conclusion = 0;
     //Foo is a sample set of test results for testing algorithm
     int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
-                    {0, 0, 0, 0, 0, 0}};                         //Row 1 = negative polarity deduced from results
-    
-    delay();
-    led_out(0x3F); // Stop point for visual testing
-    delay();
-    //pause();
+                    {0, 0, 0, 0, 0, 0}};                          //Row 1 = negative polarity deduced from results
     
     //First we deduce negative polarity for conclusions
     prep_neg(tests);
     //Identifies any broken connections (no connections to anything)
     conclusion = detect_problems(tests);
-    led_out(conclusion);
-    delay();
-    delay();
-    delay();
-    delay();
-    //pause();
+    pause_and_show(conclusion);
 }
 
 void prep_neg(int samples[2][6])
@@ -173,7 +194,7 @@ void prep_neg(int samples[2][6])
             {
                 continue;
             }
-            examine = (0x01 <<(5 - j));//extract a bit to determine if there is a connection A->B
+            examine = (0x01 <<(5 - j));//set a bit at j to determine if there is a connection A->B
             examine &= samples[0][i];
             if (examine > 0)   //Is there A->B?
             {
@@ -189,15 +210,21 @@ void prep_neg(int samples[2][6])
     }
 }
 
-int detect_problems(int results[2][6])
+struct BadStuff detect_problems(int results[2][6])
 {
+    struct BadStuff answers;
+    
     int i, j = 0; // for counting
     int pos_num, neg_num = 0; // stores number of connections (pos/neg polarity) when detecting position
     int num_breaks = 0; // The total number of breaks
-    int failures = 0; // The final conclusion as to which connections have problems
+    //int swaps = 0; // The final conclusion as to which connections have problems
     int connection = 0; // If there is a connection, this will go high
     int examine = 0; // variable for selecting a bit to examine
-    int breaks = 0; // ID of which connections are broken
+    //int breaks = 0; // ID of which connections are broken
+    
+    //have to initialize to zero otherwise...QUANTUM FOAM!??!?
+    answers.no_connection = 0;
+    answers.swapped_wires = 0;
     
     for (i=0;i<6;i++) // This loop identifies which connections are broken
     {
@@ -216,17 +243,18 @@ int detect_problems(int results[2][6])
         }
         if (connection == 0)
         {
-            breaks |= examine;
+            answers.no_connection |= examine;
         }
     }
     
     ///THE LINES FROM HERE DOWN CHECK FOR SWAPS....I WANTED 2 FUNCTIONS BUT C SAID NOOOOOO
     for (i=0;i<6;i++) // This checks to see if there are NO connections, returns same results
     {
-        num_breaks += ((breaks & (0x01 << (5-i))) >> (5-i));
+        num_breaks += ((answers.no_connection & (0x01 << (5-i))) >> (5-i));
         if (num_breaks > 4)
         {
-            return breaks;
+            answers.swapped_wires = 0x003F;
+            return answers;
         }
     }
     
@@ -241,8 +269,9 @@ int detect_problems(int results[2][6])
             {
                 continue;
             }
-            else if (((breaks & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
+            else if (((answers.no_connection & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
             {
+                
                 if (i < j) // this if/elseif is to increase the appropriate pos/neg connection
                 {
                     pos_num += 1;
@@ -261,15 +290,20 @@ int detect_problems(int results[2][6])
             }
         }
         
+        if (((answers.no_connection & (0x01 << (5-i))) >> (5-i)) == 1) // if broken, skip it
+        {
+            continue;
+        }
+        
         if (pos_num != (5-i)) // Are there the right number of positive connections?
         {
-            failures |= (0x01 << (5 - i));
+            answers.swapped_wires |= (0x01 << (5 - i));
         }
 
         if (neg_num != i) // Are there the right number of negative connections?
         {
-            failures |= (0x01 << (5 - i));
+            answers.swapped_wires |= (0x01 << (5 - i));
         }
     }
-    return failures;
+    return answers;
 }
