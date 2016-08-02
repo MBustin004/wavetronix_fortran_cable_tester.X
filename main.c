@@ -33,8 +33,8 @@ int16_t main(void)
     //*****Main Loop*****
     while(1) 
     {
-        LATB = 0x0; // Turns off switches and LEDS for a fresh start
-        LATA = 0x0;
+        //LATB = 0x0; // Turns off switches and LEDS for a fresh start
+        //LATA = 0x0;
         
         //*****Selects what test to perform*****
         test_procedure(data);

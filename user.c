@@ -14,7 +14,7 @@
 #include "user.h"
 #include "p33FJ64GP802.h"            /* variables/params used by user.c       */
 
-void InitApp(void)
+void InitApp(void) // Standard initialization function for I/O, Timers, and Interrupts
 {
     //*******I/O Config*****
     AD1PCFGL = 0xFFFF; // Set all analog pins to digital
@@ -40,7 +40,7 @@ void InitApp(void)
     
 }
 
-int test_procedure (int results_array[2][6])
+void test_procedure (int results_array[2][6])
 {
     int stage = 0; //for selecting wire pair to test
     
@@ -85,7 +85,6 @@ int test_procedure (int results_array[2][6])
                     break;
             }
         }
-    return results_array;
 }
 
 int test (int config[6]) //Performs test for given line
@@ -100,10 +99,13 @@ int test (int config[6]) //Performs test for given line
     //are the individual results of each test.
     for (i = 0; i < 6; i++)
         {
-            LATB = config[i]; //pin config for desired test switch configuration
+            LATB &= 0x8010;
+            LATB |= config[i]; //pin config for desired test switch configuration
             delay(); // To settle switches
             results <<= 1; //Create new bit "slot" for test result
             results |= PORTBbits.RB5; //Store test result
+            led_out((i+(i<<i)));
+            //pause();
         }
     return results;
 }
@@ -117,7 +119,7 @@ void delay(void)
     }
 }
 
-void pause_flash (void)
+void pause (void)
 {
     test_stop = 1;
     while(test_stop == 1)
@@ -126,8 +128,35 @@ void pause_flash (void)
     delay();
 }
 
+void pause_and_show (struct BadStuff lights)
+{
+    int flipper = 0x003F;
+    //led_out(lights.no_connection);
+    //pause();
+    //led_out(lights.swapped_wires);
+    //pause();
+    test_stop = 1;
+    while(test_stop == 1)
+    {
+        led_out((lights.no_connection | lights.swapped_wires));
+        delay();
+        delay();
+        delay();
+        delay();
+        delay();
+        led_out(lights.no_connection & (flipper ^= lights.swapped_wires));
+        delay();
+        delay();
+        delay();
+        delay();
+        delay();
+    }
+    delay();
+}
+
 void led_out(int out)
 {
+    out ^= 0xFFFF;
     LATBbits.LATB15 = (0x0001 & out);
     LATAbits.LATA4 = (0x0002 & out) >> 1;
     LATBbits.LATB4 = (0x0004 & out) >> 2;
@@ -138,61 +167,143 @@ void led_out(int out)
 
 void analyze_test (int tests[2][6])
 {
-    int i, j; //for counting
-    int examine = 0; //generic container
-    
-    //Comparison_array contains the template values that the results SHOULD be
-    int comparison_array[6] = {0x001F,0x002F,0x0037,0x003B,0x003D,0x003E}; //this is WITH extra diode
-    //Foo is the test results
+    struct BadStuff conclusion;
+    //int conclusion = 0;
+    //Foo is a sample set of test results for testing algorithm
     int foo[2][6] = {{0x001F,0x000F,0x0007,0x0003,0x0001,0x0000}, //Row 0 = results from the test
                     {0, 0, 0, 0, 0, 0}};                          //Row 1 = negative polarity deduced from results
     
-    //This set of loops deduces whether or not there is a break or if there is reverse polarity
+    //First we deduce negative polarity for conclusions
+    prep_neg(tests);
+    //Identifies any broken connections (no connections to anything)
+    conclusion = detect_problems(tests);
+    pause_and_show(conclusion);
+}
+
+void prep_neg(int samples[2][6])
+{
+    int i, j;
+    int examine = 0;
+    
+    //This set of loops deduces if there is reverse polarity
     for (i=0; i<6;i++)
     {
         for (j=0; j<6;j++)
         {
-            //led_out(j);
-            //pause_flash();
             if (i == j) //skips loop if it is the loop to test itself
             {
                 continue;
             }
-            
-            examine = (0x01 <<(5 - j));//these lines before the next if extract a bit to determine if there is a connection A->B
-            //led_out(examine);
-            //pause_flash();
-            examine &= tests[0][i];
-            //led_out(examine);
-            //pause_flash();
-            
+            examine = (0x01 <<(5 - j));//set a bit at j to determine if there is a connection A->B
+            examine &= samples[0][i];
             if (examine > 0)   //Is there A->B?
             {
                 continue;
             }
-            
-            examine = (0x01 <<(5 - i)); //These lines determine if there is B->A
-            //led_out(examine);
-            //pause_flash();
-            examine &= tests[0][j];
-            //led_out(examine);
-            //pause_flash();
-            
+            examine = (0x01 <<(5 - i)); //determine if there is B->A
+            examine &= samples[0][j];
             if (examine > 0)  //Is there B->A?
             {
-            tests[1][i] |= (0x01 << (5 - j)); // Adds A bit to Neg Reg for C
-            //led_out(tests[1][i]);
-            //pause_flash();
+            samples[1][i] |= (0x01 << (5 - j)); //Adds A bit to Neg Reg for C
             }
         }
     }
+}
+
+struct BadStuff detect_problems(int results[2][6])
+{
+    struct BadStuff answers;
     
-    for (i=0;i<6;i++)
+    int i, j = 0; // for counting
+    int pos_num, neg_num = 0; // stores number of connections (pos/neg polarity) when detecting position
+    int num_breaks = 0; // The total number of breaks
+    //int swaps = 0; // The final conclusion as to which connections have problems
+    int connection = 0; // If there is a connection, this will go high
+    int examine = 0; // variable for selecting a bit to examine
+    //int breaks = 0; // ID of which connections are broken
+    
+    //have to initialize to zero otherwise...QUANTUM FOAM!??!?
+    answers.no_connection = 0;
+    answers.swapped_wires = 0;
+    
+    for (i=0;i<6;i++) // This loop identifies which connections are broken
     {
-        for(j=0;j<2;j++)
+        connection = 0;
+        
+        for(j=0;j<6;j++)
         {
-            led_out(tests[j][i]);
-            pause_flash();
+            if (i == j) //skips loop if it is the loop to test itself
+            {
+                continue;
+            }
+            //these lines extract a bit from pos/neg registers to determine if there is a connection
+            examine = (0x01 << (5 - i));
+            connection |= (results[0][j] & examine);
+            connection |= (results[1][j] & examine);
+        }
+        if (connection == 0)
+        {
+            answers.no_connection |= examine;
         }
     }
+    
+    ///THE LINES FROM HERE DOWN CHECK FOR SWAPS....I WANTED 2 FUNCTIONS BUT C SAID NOOOOOO
+    for (i=0;i<6;i++) // This checks to see if there are NO connections, returns same results
+    {
+        num_breaks += ((answers.no_connection & (0x01 << (5-i))) >> (5-i));
+        if (num_breaks > 4)
+        {
+            answers.swapped_wires = 0x003F;
+            return answers;
+        }
+    }
+    
+    for (i=0; i<6; i++) // THIS DETECTS THE SWAPS
+    {
+        pos_num = 0;
+        neg_num = 0;
+        
+        for(j=0; j<6; j++)
+        {
+            if (i == j) // don't asses A -> A
+            {
+                continue;
+            }
+            else if (((answers.no_connection & (0x01 << (5-j))) >> (5-j)) == 1) //ignore broken connection, just add it
+            {
+                
+                if (i < j) // this if/elseif is to increase the appropriate pos/neg connection
+                {
+                    pos_num += 1;
+                }
+                else if (i > j)
+                {
+                    neg_num += 1;
+                }
+                
+                continue;
+            }
+            else
+            {
+                pos_num += (((results[0][i] & (0x01 << (5 - j)))) >> (5 - j)); //finds positive connections
+                neg_num += ((results[1][i] & (0x01 << (5 - j))) >> (5-j)); //same with neg
+            }
+        }
+        
+        if (((answers.no_connection & (0x01 << (5-i))) >> (5-i)) == 1) // if broken, skip it
+        {
+            continue;
+        }
+        
+        if (pos_num != (5-i)) // Are there the right number of positive connections?
+        {
+            answers.swapped_wires |= (0x01 << (5 - i));
+        }
+
+        if (neg_num != i) // Are there the right number of negative connections?
+        {
+            answers.swapped_wires |= (0x01 << (5 - i));
+        }
+    }
+    return answers;
 }
